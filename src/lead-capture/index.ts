@@ -1,0 +1,12 @@
+export * from "./types.ts";
+export { createCaptureHandler } from "./handler.ts";
+export type { CaptureConfig, CaptureOptions } from "./handler.ts";
+export { normalizePhone, normalizeEmail } from "./normalize.ts";
+export { verifyMetaSignature } from "./signature.ts";
+export { parseWhatsAppWebhook } from "./channels/whatsapp.ts";
+export { parseMessagingWebhook } from "./channels/messaging.ts";
+export { extractLeadgenChanges, fetchLead, mapGraphLead } from "./channels/meta-lead-ads.ts";
+export { parseWebForm } from "./channels/web-form.ts";
+export { InMemoryLeadSink, contactKeys } from "./sinks/memory.ts";
+export { PrismaLeadSink, mapSource, campaignLabel } from "./sinks/prisma.ts";
+export { captureHandlerFromEnv } from "./from-env.ts";

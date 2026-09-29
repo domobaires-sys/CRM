@@ -19,10 +19,10 @@ El código está en [`src/lead-capture/`](../src/lead-capture). Hay dos rutas:
 ## Qué hace con cada consulta
 
 1. **Normaliza el contacto.** El teléfono pasa a formato internacional (`011 15 5555-1234` → `+5491155551234`), el mismo que usa WhatsApp, y el email a minúsculas.
-2. **No duplica.** Meta reintenta los webhooks; cada evento queda anotado y un reintento no crea nada nuevo.
+2. **No duplica.** Meta reintenta los webhooks; el id de cada evento queda en `Lead.externalId` (o en `rawPayload` si se sumó a un lead existente) y un reintento no crea nada nuevo.
 3. **Junta al mismo cliente.** Si ya hay un lead abierto (`NUEVO` o `CONTACTADO`) con el mismo teléfono, email o usuario de Instagram, el mensaje se suma a ese lead. Una charla de diez mensajes por WhatsApp es un solo lead, y quien llena el formulario web y después escribe por WhatsApp también.
 4. **Reconoce clientes existentes.** Si el teléfono o email ya es de un `Contact`, se registra una `Activity` en su ficha y el lead queda ligado a él.
-5. **Guarda el origen.** `Lead.campaign` toma el nombre de la campaña de Meta, el anuncio o el `utm_campaign`. En `rawPayload` quedan las respuestas del formulario (uso del domo, diámetro, zona), todos los mensajes, los ids de anuncio y el payload original.
+5. **Guarda el origen.** `Lead.campaign` toma el nombre de la campaña de Meta, el anuncio o el `utm_campaign`; `adId` y `formId` guardan los ids de Meta. En `rawPayload` quedan las respuestas del formulario (uso del domo, diámetro, zona), todos los mensajes, los ids de anuncio y el payload original.
 
 ## Puesta en marcha
 
@@ -126,6 +126,6 @@ npm run typecheck
 
 ## Pendiente o a decidir
 
-- **Columna `externalId` en `Lead`.** Hoy la idempotencia se guarda dentro de `rawPayload`. Una columna única sería más robusta ante dos webhooks simultáneos del mismo cliente.
+- **Dos webhooks simultáneos de un cliente nuevo.** `Lead.externalId` evita duplicar el mismo evento, pero si llegan a la vez dos mensajes distintos de un número que no estaba cargado pueden quedar dos leads. Es raro; si pasa, se puede cerrar con un bloqueo por teléfono.
 - **Nombre de Instagram.** Los DMs llegan sin nombre; se puede pedir a la Graph API con el IGSID.
 - **Respuesta automática y calificación** con los datos que entran acá.

@@ -2,7 +2,8 @@
  * Sink que guarda las consultas en la base del CRM (modelo en prisma/schema.prisma).
  *
  * Reglas:
- * 1. Idempotencia: cada evento (source + externalId) queda anotado en
+ * 1. Idempotencia: el primer evento de cada lead va en `Lead.externalId`
+ *    (único por fuente) y los siguientes que se suman a él quedan en
  *    `Lead.rawPayload.eventIds`; si Meta reintenta un webhook, no se duplica.
  * 2. Si el teléfono o email ya es de un `Contact`, la consulta se registra como
  *    `Activity` del contacto; solo se abre un `Lead` nuevo (ligado al contacto)
@@ -110,12 +111,8 @@ export class PrismaLeadSink implements LeadSink {
   }
 
   async upsert(lead: InboundLead): Promise<UpsertResult> {
-    const key = eventKey(lead);
-    const seen = await this.db.lead.findFirst({
-      where: { rawPayload: { path: ["eventIds"], array_contains: [key] } },
-      select: { id: true },
-    });
-    if (seen) return { leadId: seen.id, created: false, duplicate: true };
+    const seen = await this.findEvent(lead);
+    if (seen) return { leadId: seen, created: false, duplicate: true };
 
     const identity: Prisma.LeadWhereInput[] = [];
     if (lead.phone) identity.push({ phone: lead.phone });
@@ -159,6 +156,8 @@ export class PrismaLeadSink implements LeadSink {
           email: open.email ?? lead.email,
           message: open.message ?? lead.message,
           campaign: open.campaign ?? campaignLabel(lead),
+          adId: open.adId ?? lead.attribution?.adId,
+          formId: open.formId ?? lead.attribution?.formId,
           contactId: open.contactId ?? contact?.id,
           rawPayload: toJson(mergePayload(asPayload(open.rawPayload), lead)),
         },
@@ -166,21 +165,46 @@ export class PrismaLeadSink implements LeadSink {
       return { leadId: open.id, created: false, duplicate: false };
     }
 
-    const created = await this.db.lead.create({
-      data: {
-        name: lead.name,
-        phone: lead.phone,
-        email: lead.email,
-        message: lead.message,
-        source: mapSource(lead),
-        campaign: campaignLabel(lead),
-        rawPayload: toJson(initialPayload(lead)),
-        contactId: contact?.id,
-        createdAt: new Date(lead.receivedAt),
+    try {
+      const created = await this.db.lead.create({
+        data: {
+          name: lead.name,
+          phone: lead.phone,
+          email: lead.email,
+          message: lead.message,
+          source: mapSource(lead),
+          externalId: lead.externalId,
+          campaign: campaignLabel(lead),
+          adId: lead.attribution?.adId,
+          formId: lead.attribution?.formId,
+          receivedAt: new Date(lead.receivedAt),
+          rawPayload: toJson(initialPayload(lead)),
+          contactId: contact?.id,
+        },
+        select: { id: true },
+      });
+      return { leadId: created.id, created: true, duplicate: false };
+    } catch (err) {
+      // Dos entregas simultáneas del mismo evento: la otra ya lo creó.
+      if ((err as { code?: string }).code === "P2002") {
+        const id = await this.findEvent(lead);
+        if (id) return { leadId: id, created: false, duplicate: true };
+      }
+      throw err;
+    }
+  }
+
+  private async findEvent(lead: InboundLead): Promise<string | undefined> {
+    const found = await this.db.lead.findFirst({
+      where: {
+        OR: [
+          { source: mapSource(lead), externalId: lead.externalId },
+          { rawPayload: { path: ["eventIds"], array_contains: [eventKey(lead)] } },
+        ],
       },
       select: { id: true },
     });
-    return { leadId: created.id, created: true, duplicate: false };
+    return found?.id;
   }
 }
 

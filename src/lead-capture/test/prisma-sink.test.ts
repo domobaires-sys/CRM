@@ -85,3 +85,17 @@ test("si el teléfono ya es de un Contact, registra una Activity y liga el lead"
   assert.equal(acts.length, 1);
   assert.equal(acts[0].type, "WHATSAPP");
 });
+
+test("guarda externalId, adId, formId y receivedAt en las columnas del Lead", { skip }, async () => {
+  const sink = new PrismaLeadSink(db!);
+  const r = await sink.upsert(base({
+    source: "meta_lead_ad", externalId: "LG_77", contactHandle: undefined, phone: "+5491100001111",
+    attribution: { platform: "fb", adId: "AD_5", formId: "FORM_5", campaignName: "Vivienda" },
+  }));
+  const lead = await db!.lead.findUniqueOrThrow({ where: { id: r.leadId } });
+  assert.equal(lead.source, "FACEBOOK_ADS");
+  assert.equal(lead.externalId, "LG_77");
+  assert.equal(lead.adId, "AD_5");
+  assert.equal(lead.formId, "FORM_5");
+  assert.equal(lead.receivedAt.toISOString(), "2026-09-29T03:00:00.000Z");
+});

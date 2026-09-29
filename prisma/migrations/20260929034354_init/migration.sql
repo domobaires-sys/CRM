@@ -37,7 +37,11 @@ CREATE TABLE "Lead" (
     "province" TEXT,
     "message" TEXT,
     "source" "LeadSource" NOT NULL,
+    "externalId" TEXT,
     "campaign" TEXT,
+    "adId" TEXT,
+    "formId" TEXT,
+    "receivedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "status" "LeadStatus" NOT NULL DEFAULT 'NUEVO',
     "interestUse" "DomeUse",
     "rawPayload" JSONB,
@@ -172,6 +176,9 @@ CREATE INDEX "Lead_status_idx" ON "Lead"("status");
 
 -- CreateIndex
 CREATE INDEX "Lead_source_idx" ON "Lead"("source");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Lead_source_externalId_key" ON "Lead"("source", "externalId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Contact_phone_key" ON "Contact"("phone");

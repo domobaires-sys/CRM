@@ -90,7 +90,11 @@ model Lead {
   province    String?
   message     String?
   source      LeadSource
+  externalId  String? // id del lead en la plataforma de origen (Meta leadgen_id, id de mensaje de WhatsApp, etc.)
   campaign    String? // nombre de campaña/anuncio de Meta, UTM, etc.
+  adId        String?
+  formId      String?
+  receivedAt  DateTime   @default(now())
   status      LeadStatus @default(NUEVO)
   interestUse DomeUse?
   rawPayload  Json?
@@ -101,6 +105,7 @@ model Lead {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
+  @@unique([source, externalId])
   @@index([status])
   @@index([source])
 }

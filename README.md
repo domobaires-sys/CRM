@@ -25,7 +25,7 @@ Etapas del pipeline (se cargan con `npm run db:seed`):
 | 6 | Ganado (seña cobrada) | 100 % |
 | 7 | Perdido | 0 % |
 
-El detalle de cada tabla está en [docs/modelo-de-datos.md](docs/modelo-de-datos.md) y la propuesta de tecnología en [docs/stack.md](docs/stack.md).
+El detalle de cada tabla está en [docs/modelo-de-datos.md](docs/modelo-de-datos.md) y la propuesta de tecnología en [docs/stack.md](docs/stack.md). Cómo entran las consultas de Meta Ads, Instagram, WhatsApp y la web: [docs/captura-de-leads.md](docs/captura-de-leads.md).
 
 ## Puesta en marcha
 

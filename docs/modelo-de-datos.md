@@ -3,7 +3,7 @@
 Definido en [`prisma/schema.prisma`](../prisma/schema.prisma).
 
 ## Lead
-La consulta tal como llega, antes de saber si es un cliente real. Guarda la fuente (`INSTAGRAM`, `FACEBOOK_ADS`, `WEB`, `WHATSAPP`, `REFERIDO`, `CURSO`, `FERIA`, `OTRO`), la campaña o anuncio de origen y el `rawPayload` completo para no perder nada cuando la carga sea automática. Estados: `NUEVO`, `CONTACTADO`, `CONVERTIDO`, `DESCARTADO`.
+La consulta tal como llega, antes de saber si es un cliente real. Guarda la fuente (`INSTAGRAM`, `FACEBOOK_ADS`, `WEB`, `WHATSAPP`, `REFERIDO`, `CURSO`, `FERIA`, `OTRO`), la campaña, anuncio y formulario de origen, el `externalId` de la plataforma (único por fuente, evita cargar dos veces el mismo lead) y el `rawPayload` completo para no perder nada cuando la carga sea automática. Estados: `NUEVO`, `CONTACTADO`, `CONVERTIDO`, `DESCARTADO`.
 
 Separarlo del contacto permite medir qué campañas traen consultas que después se convierten en ventas.
 

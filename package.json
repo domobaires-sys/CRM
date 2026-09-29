@@ -8,13 +8,20 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "cotizar": "node lib/cotizador/cli.js",
+    "cotizar:ejemplo": "node lib/cotizador/cli.js lib/cotizador/ejemplos/glamping-bariloche.json -o propuestas/ejemplo.pdf",
+    "db:seed:catalogo": "node prisma/seed-catalogo.mjs",
+    "test": "node --test"
   },
   "prisma": {
     "seed": "node prisma/seed.mjs"
   },
   "dependencies": {
-    "@prisma/client": "^6.0.0"
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource/poppins": "^5.3.0",
+    "@prisma/client": "^6.0.0",
+    "playwright-core": "^1.56.0"
   },
   "devDependencies": {
     "prisma": "^6.0.0"

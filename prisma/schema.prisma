@@ -1,0 +1,234 @@
+// Modelo de datos del CRM de DOMO Baires.
+// Flujo: Lead (consulta entrante) -> Contact + Deal (oportunidad en el pipeline)
+//        -> Quote (presupuesto) -> Deal ganado (seña cobrada) o perdido.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum LeadSource {
+  INSTAGRAM
+  FACEBOOK_ADS
+  WEB
+  WHATSAPP
+  REFERIDO
+  CURSO
+  FERIA
+  OTRO
+}
+
+enum LeadStatus {
+  NUEVO // entró y nadie lo tocó
+  CONTACTADO // ya se le respondió
+  CONVERTIDO // pasó a Contact + Deal
+  DESCARTADO // spam, fuera de zona, sin interés real
+}
+
+// Para qué quiere el domo el cliente
+enum DomeUse {
+  VIVIENDA
+  GLAMPING
+  INVERNADERO
+  EVENTOS
+  QUINCHO
+  OTRO
+}
+
+enum Currency {
+  ARS
+  USD
+}
+
+enum QuoteStatus {
+  BORRADOR
+  ENVIADO
+  ACEPTADO
+  RECHAZADO
+  VENCIDO
+}
+
+enum ActivityType {
+  WHATSAPP
+  LLAMADA
+  EMAIL
+  REUNION
+  VISITA
+  NOTA
+  TAREA
+}
+
+// ---------- Equipo ----------
+
+model User {
+  id         String     @id @default(cuid())
+  name       String
+  email      String     @unique
+  active     Boolean    @default(true)
+  deals      Deal[]
+  leads      Lead[]
+  activities Activity[]
+  createdAt  DateTime   @default(now())
+}
+
+// ---------- Entrada ----------
+
+// Consulta cruda tal como llega (formulario de Meta Ads, web, DM, WhatsApp).
+// Se guarda el payload original para no perder datos al automatizar la ingesta.
+model Lead {
+  id          String     @id @default(cuid())
+  name        String?
+  phone       String?
+  email       String?
+  city        String?
+  province    String?
+  message     String?
+  source      LeadSource
+  campaign    String? // nombre de campaña/anuncio de Meta, UTM, etc.
+  status      LeadStatus @default(NUEVO)
+  interestUse DomeUse?
+  rawPayload  Json?
+  ownerId     String?
+  owner       User?      @relation(fields: [ownerId], references: [id])
+  contactId   String?
+  contact     Contact?   @relation(fields: [contactId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([status])
+  @@index([source])
+}
+
+// ---------- Personas ----------
+
+model Contact {
+  id         String     @id @default(cuid())
+  firstName  String
+  lastName   String?
+  phone      String?    @unique // WhatsApp, formato E.164 (+549...)
+  email      String?    @unique
+  city       String?
+  province   String?
+  country    String     @default("AR")
+  company    String? // si compra un emprendimiento (glamping, hotel, etc.)
+  notes      String?
+  leads      Lead[]
+  deals      Deal[]
+  activities Activity[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+// ---------- Pipeline ----------
+
+model PipelineStage {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  position    Int     @unique
+  probability Int     @default(0) // % de cierre esperado, para el forecast
+  isWon       Boolean @default(false)
+  isLost      Boolean @default(false)
+  deals       Deal[]
+}
+
+// Oportunidad de venta: un cliente que quiere un domo concreto.
+model Deal {
+  id                String        @id @default(cuid())
+  title             String
+  contactId         String
+  contact           Contact       @relation(fields: [contactId], references: [id])
+  stageId           String
+  stage             PipelineStage @relation(fields: [stageId], references: [id])
+  ownerId           String?
+  owner             User?         @relation(fields: [ownerId], references: [id])
+  use               DomeUse?
+  diameterM         Decimal?      @db.Decimal(5, 2) // diámetro buscado, en metros
+  installCity       String? // dónde se instala el domo
+  installProvince   String?
+  estimatedValue    Decimal?      @db.Decimal(14, 2)
+  currency          Currency      @default(USD)
+  expectedCloseDate DateTime?
+  lostReason        String?
+  stageChangedAt    DateTime      @default(now()) // para detectar deals estancados
+  closedAt          DateTime?
+  quotes            Quote[]
+  activities        Activity[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([stageId])
+  @@index([ownerId])
+}
+
+// ---------- Catálogo y presupuestos ----------
+
+model Product {
+  id          String      @id @default(cuid())
+  sku         String      @unique
+  name        String
+  description String?
+  diameterM   Decimal?    @db.Decimal(5, 2)
+  areaM2      Decimal?    @db.Decimal(7, 2)
+  basePrice   Decimal     @db.Decimal(14, 2)
+  currency    Currency    @default(USD)
+  active      Boolean     @default(true)
+  quoteItems  QuoteItem[]
+}
+
+model Quote {
+  id           String      @id @default(cuid())
+  number       Int         @unique @default(autoincrement()) // P-0001 al mostrarlo
+  dealId       String
+  deal         Deal        @relation(fields: [dealId], references: [id])
+  status       QuoteStatus @default(BORRADOR)
+  currency     Currency    @default(USD)
+  exchangeRate Decimal?    @db.Decimal(14, 4) // cotización ARS/USD usada, si aplica
+  discount     Decimal     @default(0) @db.Decimal(14, 2)
+  total        Decimal     @default(0) @db.Decimal(14, 2)
+  validUntil   DateTime?
+  sentAt       DateTime?
+  notes        String?
+  items        QuoteItem[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([dealId])
+}
+
+model QuoteItem {
+  id          String   @id @default(cuid())
+  quoteId     String
+  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id])
+  description String // ej. "Domo 6 m", "Flete a Córdoba", "Montaje"
+  quantity    Decimal  @default(1) @db.Decimal(10, 2)
+  unitPrice   Decimal  @db.Decimal(14, 2)
+}
+
+// ---------- Seguimiento ----------
+
+// Toda interacción o tarea pendiente. dueAt sin doneAt = seguimiento por hacer.
+model Activity {
+  id        String       @id @default(cuid())
+  type      ActivityType
+  summary   String
+  body      String?
+  dueAt     DateTime?
+  doneAt    DateTime?
+  contactId String?
+  contact   Contact?     @relation(fields: [contactId], references: [id])
+  dealId    String?
+  deal      Deal?        @relation(fields: [dealId], references: [id])
+  userId    String?
+  user      User?        @relation(fields: [userId], references: [id])
+  createdAt DateTime     @default(now())
+
+  @@index([dueAt])
+}

@@ -1,0 +1,184 @@
+{
+  "_aviso": "Nada de este archivo está validado por DOMO Baires. Cada bloque de 'validacion' en false se oculta en la propuesta o se muestra marcado como ejemplo. Pasarlo a true sólo cuando DOMO Baires apruebe ese contenido.",
+  "validacion": {
+    "catalogo": false,
+    "descripcionesModelos": false,
+    "alturas": false,
+    "plazos": false,
+    "condicionesPago": false,
+    "validez": false,
+    "ingenieria": false,
+    "fotos": false
+  },
+  "moneda": "USD",
+  "iva": {
+    "porcentaje": 21,
+    "incluidoEnPrecios": false
+  },
+  "validezDias": 15,
+  "condicionesPago": [
+    {
+      "etapa": "Firma del contrato",
+      "porcentaje": 50
+    },
+    {
+      "etapa": "Inicio del montaje",
+      "porcentaje": 40
+    },
+    {
+      "etapa": "Entrega de obra",
+      "porcentaje": 10
+    }
+  ],
+  "diametros": [
+    {
+      "diametro": 5,
+      "altura": 2.5
+    },
+    {
+      "diametro": 6,
+      "altura": 3.0
+    },
+    {
+      "diametro": 7,
+      "altura": 3.5
+    },
+    {
+      "diametro": 8,
+      "altura": 4.0
+    },
+    {
+      "diametro": 10,
+      "altura": 5.0
+    },
+    {
+      "diametro": 12,
+      "altura": 6.0
+    }
+  ],
+  "modelos": [
+    {
+      "id": "estructura",
+      "nombre": "Estructura",
+      "descripcion": "",
+      "incluye": [],
+      "precioM2": 380,
+      "minimo": 9000,
+      "plazoSemanas": 6
+    },
+    {
+      "id": "envolvente",
+      "nombre": "Envolvente",
+      "descripcion": "",
+      "incluye": [],
+      "precioM2": 650,
+      "minimo": 15000,
+      "plazoSemanas": 9
+    },
+    {
+      "id": "llave-en-mano",
+      "nombre": "Llave en mano",
+      "descripcion": "",
+      "incluye": [],
+      "precioM2": 1100,
+      "minimo": 26000,
+      "plazoSemanas": 14
+    }
+  ],
+  "opciones": [
+    {
+      "id": "vidriado-panoramico",
+      "nombre": "Vidriado panorámico frontal (DVH)",
+      "tipo": "fijo",
+      "precio": 3500
+    },
+    {
+      "id": "claraboya",
+      "nombre": "Claraboya cenital",
+      "tipo": "unidad",
+      "precio": 650,
+      "unidad": "u."
+    },
+    {
+      "id": "altillo",
+      "nombre": "Entrepiso / altillo de madera",
+      "tipo": "m2Domo",
+      "factor": 0.35,
+      "precio": 420,
+      "modelos": [
+        "envolvente",
+        "llave-en-mano"
+      ]
+    },
+    {
+      "id": "bano",
+      "nombre": "Baño completo",
+      "tipo": "fijo",
+      "precio": 6500,
+      "modelos": [
+        "envolvente",
+        "llave-en-mano"
+      ]
+    },
+    {
+      "id": "kitchenette",
+      "nombre": "Kitchenette",
+      "tipo": "fijo",
+      "precio": 4200,
+      "modelos": [
+        "envolvente",
+        "llave-en-mano"
+      ]
+    },
+    {
+      "id": "deck",
+      "nombre": "Deck exterior de madera",
+      "tipo": "m2",
+      "precio": 120,
+      "unidad": "m²"
+    },
+    {
+      "id": "aislacion-reforzada",
+      "nombre": "Aislación reforzada para clima frío",
+      "tipo": "m2Domo",
+      "factor": 1,
+      "precio": 60,
+      "modelos": [
+        "envolvente",
+        "llave-en-mano"
+      ]
+    },
+    {
+      "id": "estufa-lena",
+      "nombre": "Estufa a leña con salida de humos",
+      "tipo": "fijo",
+      "precio": 1800,
+      "modelos": [
+        "envolvente",
+        "llave-en-mano"
+      ]
+    },
+    {
+      "id": "platea",
+      "nombre": "Platea de hormigón",
+      "tipo": "m2Domo",
+      "factor": 1,
+      "precio": 95
+    },
+    {
+      "id": "flete",
+      "nombre": "Flete desde taller",
+      "tipo": "unidad",
+      "precio": 1.8,
+      "unidad": "km"
+    }
+  ],
+  "ingenieria": {
+    "_ayuda": "Página opcional de ingeniería. Completar con textos aprobados por DOMO Baires; {lugar} se reemplaza por la ubicación del proyecto.",
+    "etiqueta": "",
+    "titulo": "",
+    "texto": "",
+    "puntos": [],
+    "frase": ""
+  }
+}

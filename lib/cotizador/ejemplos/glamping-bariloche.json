@@ -1,0 +1,36 @@
+{
+  "cliente": {
+    "nombre": "Martina Ríos",
+    "empresa": "Refugio Nahuel Glamping",
+    "email": "martina@ejemplo.com",
+    "telefono": "+5492944000000"
+  },
+  "proyecto": {
+    "ubicacion": "Villa Los Coihues, Bariloche",
+    "provincia": "Río Negro",
+    "uso": "Glamping",
+    "lat": -41.1552,
+    "lng": -71.4061
+  },
+  "modelo": "llave-en-mano",
+  "diametro": 7,
+  "opciones": [
+    "vidriado-panoramico",
+    {
+      "id": "claraboya",
+      "cantidad": 1
+    },
+    "bano",
+    "estufa-lena",
+    "aislacion-reforzada",
+    {
+      "id": "deck",
+      "cantidad": 18
+    },
+    {
+      "id": "flete",
+      "cantidad": 1600
+    }
+  ],
+  "descuentoPorcentaje": 5
+}

@@ -4,13 +4,30 @@ Genera la propuesta comercial de DOMO Baires en PDF (5 páginas A4, con la ident
 
 Código en [`lib/cotizador/`](../lib/cotizador/).
 
+## Regla: nada sin validar
+
+La propuesta sólo presenta como solución de DOMO Baires lo que DOMO Baires validó. En [`lib/cotizador/catalogo.json`](../lib/cotizador/catalogo.json) el bloque `validacion` tiene un interruptor por tipo de contenido, y **hoy están todos en `false`**:
+
+| Bloque | Mientras no esté validado |
+|---|---|
+| `catalogo` (modelos, opciones y precios) | Se muestran con la marca de agua "PRECIOS DE EJEMPLO" |
+| `descripcionesModelos` | No se muestra descripción ni "qué incluye" (están vacíos) |
+| `alturas` | No se muestra la altura |
+| `plazos` | El plazo figura "A definir" |
+| `condicionesPago` | No se muestra la forma de pago |
+| `validez` | No se muestra la fecha de vencimiento |
+| `ingenieria` | No se incluye la página de ingeniería (sus textos están vacíos) |
+| `fotos` | Portada y cierre sin fotos |
+
+Mientras quede algo pendiente, cada página lleva la franja "Borrador · No enviar a clientes · Pendiente de validación por DOMO Baires: …" y la línea de comandos lo advierte.
+
 ## Qué trae la propuesta
 
-1. **Portada**: foto, nombre del cliente o emprendimiento, número, fecha y vencimiento.
-2. **El proyecto**: diámetro, superficie, altura, uso, ubicación, plazo y qué incluye el modelo.
-3. **Ingeniería sitio-específica**: cita la ubicación real del cliente (y coordenadas si se cargan). En Neuquén, Río Negro, Chubut, Santa Cruz, Tierra del Fuego y Mendoza destaca la carga de nieve (CIRSOC 104) además del viento (CIRSOC 102).
-4. **Inversión**: detalle de ítems, descuento, IVA, total, forma de pago en cuotas y etapas con semanas.
-5. **Cierre**: "Conocé el futuro." y un único llamado a la acción por WhatsApp.
+1. **Portada**: cliente o emprendimiento, modelo, diámetro, ubicación, número y fecha.
+2. **El proyecto**: modelo, diámetro, superficie, uso, ubicación (y coordenadas si se cargan) y plazo.
+3. **Ingeniería** (sólo si está validada): título, texto y puntos tal como los cargue DOMO Baires; `{lugar}` se reemplaza por la ubicación del proyecto.
+4. **Inversión**: detalle de ítems, descuento, IVA y total.
+5. **Cierre**: "Conocé el futuro." y contacto por WhatsApp, mail, Instagram y web.
 
 ## Uso
 
@@ -37,7 +54,7 @@ Cuando se cotiza sobre un deal, el cliente, la ubicación, el uso y el diámetro
   "modelo": "llave-en-mano",
   "opciones": ["vidriado-panoramico", "bano", { "id": "deck", "cantidad": 18 }, { "id": "flete", "cantidad": 1600 }],
   "descuentoPorcentaje": 5,
-  "notas": "Descuento por reserva de dos unidades."
+  "notas": "Texto libre para este cliente."
 }
 ```
 
@@ -52,24 +69,24 @@ const pdf = await generarPDF(cotizacion); // Buffer
 
 ## Precios y catálogo
 
-Todo lo que cambia seguido vive en [`lib/cotizador/catalogo.json`](../lib/cotizador/catalogo.json):
+Todo vive en [`lib/cotizador/catalogo.json`](../lib/cotizador/catalogo.json):
 
-- **Modelos** (`estructura`, `envolvente`, `llave-en-mano`): precio por m², mínimo, plazo en semanas, qué incluye.
-- **Diámetros** disponibles (5, 6, 7, 8, 10 y 12 m) con su altura.
+- **Modelos** (`estructura`, `envolvente`, `llave-en-mano`): nombre, precio por m², mínimo, plazo en semanas, descripción y qué incluye.
+- **Diámetros** disponibles con su altura.
 - **Opciones**, de cuatro tipos:
-  - `fijo`: un precio (baño, vidriado panorámico).
-  - `unidad`: precio × cantidad (claraboyas, flete por km).
-  - `m2`: precio × m² que se indican (deck).
-  - `m2Domo`: precio × superficie del domo × factor (altillo, aislación reforzada, platea).
-  - `modelos` limita una opción a ciertos modelos (por ejemplo, no hay baño en el modelo Estructura).
-- IVA, validez de la propuesta y cuotas de pago.
+  - `fijo`: un precio.
+  - `unidad`: precio × cantidad (por ejemplo, flete por km).
+  - `m2`: precio × m² que se indican.
+  - `m2Domo`: precio × superficie del domo × factor.
+  - `modelos` limita una opción a ciertos modelos.
+- IVA, validez de la propuesta, cuotas de pago y textos de ingeniería.
 
-> **Los precios actuales son de ejemplo.** Hay que reemplazarlos por la lista real antes de mandar propuestas a clientes, y después correr `npm run db:seed:catalogo` para actualizar la tabla `Product`.
+> **Los modelos, opciones y precios actuales son de ejemplo**, sólo para probar el cálculo. Cuando DOMO Baires cargue los reales, se pone `validacion.catalogo` en `true` y se corre `npm run db:seed:catalogo` para actualizar la tabla `Product`.
 
 ## Logo y fotos
 
 - **Logo**: si existen `lib/cotizador/assets/logo-navy.svg` (o `.png`) y `logo-blanco.svg`, se usan esos archivos. Mientras tanto, la propuesta compone el logotipo "DOMO BAIRES" con la tipografía de marca.
-- **Fotos**: `lib/cotizador/assets/fotos/{portada,proyecto,ingenieria,cierre}.jpg`. Se pueden reemplazar por fotos de obra reales con el mismo nombre.
+- **Fotos**: `lib/cotizador/assets/fotos/{portada,proyecto,ingenieria,cierre}.jpg`. Sólo se usan con `validacion.fotos` en `true`; reemplazarlas por fotos aprobadas antes de activarlo.
 - Tipografías: Poppins y Archivo (sustituto libre de Termina), incluidas vía `@fontsource`, sin depender de internet al generar.
 
 ## Requisitos técnicos

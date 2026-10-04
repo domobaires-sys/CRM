@@ -1,6 +1,6 @@
 # Cotizador automático
 
-Genera la propuesta comercial de DOMO Baires en PDF (5 páginas A4, con la identidad de marca) a partir de **modelo**, **diámetro** y **opciones**, y la guarda como `Quote` del deal en el CRM.
+Genera la propuesta comercial de DOMO Baires en PDF (A4, con la identidad de marca) a partir de **modelo**, **diámetro** y **opciones**, y la guarda como `Quote` del deal en el CRM.
 
 Código en [`lib/cotizador/`](../lib/cotizador/).
 
